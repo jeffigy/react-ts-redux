@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import Counter from "./features/counter/Counter";
 import GetPokemon from "./features/pokemon/GetPokemon";
+import { Box, Flex, Text } from "@chakra-ui/react";
+import PostList from "./features/posts/PostList";
 
 type AppProps = {};
 
@@ -9,7 +11,7 @@ const App: React.FC<AppProps> = () => {
   const [pollingInterval, setPollingInterval] = useState(0);
   return (
     <>
-      <Counter />
+      {/* <Counter />
       <div className="App">
         <select
           onChange={(change) => setPollingInterval(Number(change.target.value))}
@@ -27,7 +29,18 @@ const App: React.FC<AppProps> = () => {
             />
           ))}
         </div>
-      </div>
+      </div> */}
+
+      <Flex
+        minH={"100vh"}
+        bg={"teal"}
+        justifyContent={"center"}
+        alignItems={"center"}
+      >
+        <Text>
+          <PostList />
+        </Text>
+      </Flex>
     </>
   );
 };
