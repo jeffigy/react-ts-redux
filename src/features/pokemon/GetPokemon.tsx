@@ -1,7 +1,17 @@
 import { useGetPokemonByNameQuery } from "../../services/pokemon";
-const GetPokemon = () => {
-  const { data, error, isLoading } = useGetPokemonByNameQuery("bulbasaur");
 
+type PokemonTypes = {
+  name: string;
+  pollingInterval: number;
+};
+
+const GetPokemon: React.FC<PokemonTypes> = ({ name, pollingInterval }) => {
+  const { data, error, isLoading, isFetching } = useGetPokemonByNameQuery(
+    name,
+    {
+      pollingInterval,
+    }
+  );
   return (
     <div className="App">
       {error ? (
