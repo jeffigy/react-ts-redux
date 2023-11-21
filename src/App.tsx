@@ -3,6 +3,7 @@ import Counter from "./features/counter/Counter";
 import GetPokemon from "./features/pokemon/GetPokemon";
 import { Box, Flex, Text } from "@chakra-ui/react";
 import PostList from "./features/posts/PostList";
+import AddPostForm from "./features/posts/AddPostForm";
 
 type AppProps = {};
 
@@ -32,14 +33,14 @@ const App: React.FC<AppProps> = () => {
       </div> */}
 
       <Flex
+        direction={"column"}
         minH={"100vh"}
         bg={"teal"}
         justifyContent={"center"}
         alignItems={"center"}
       >
-        <Text>
-          <PostList />
-        </Text>
+        <AddPostForm />
+        <PostList />
       </Flex>
     </>
   );
