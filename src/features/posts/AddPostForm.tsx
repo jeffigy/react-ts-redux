@@ -5,34 +5,36 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Select,
   Stack,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { nanoid } from "@reduxjs/toolkit";
 import { postAdded } from "./postSlice";
+import { User, selecdtAllusers } from "../users/usersSlice";
 type AddPostFormProps = {};
 
 const AddPostForm: React.FC<AddPostFormProps> = () => {
   const dispatch = useAppDispatch();
+
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
+
+  const users = useAppSelector(selecdtAllusers);
 
   const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (title && content) {
-      const newPost = {
-        id: nanoid(),
-        title,
-        content,
-      };
-
-      dispatch(postAdded(newPost));
+      dispatch(postAdded(title, content, userId));
       setTitle("");
       setContent("");
     }
   };
+
+  const canSave = Boolean(title) && Boolean(content) && Boolean(userId);
+
   return (
     <form onSubmit={onFormSubmit}>
       <Card mb={"30px"}>
@@ -53,7 +55,23 @@ const AddPostForm: React.FC<AddPostFormProps> = () => {
               onChange={(e) => setContent(e.target.value)}
             />
           </FormControl>
-          <Button w={"full"} type="submit">
+          <FormControl>
+            <FormLabel>User</FormLabel>
+            <Select
+              placeholder="Select user"
+              name="user"
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+            >
+              {users.map((user: User) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
+            </Select>
+          </FormControl>
+
+          <Button w={"full"} type="submit" isDisabled={!canSave}>
             Submit
           </Button>
         </CardBody>
