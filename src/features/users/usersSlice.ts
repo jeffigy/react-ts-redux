@@ -1,21 +1,59 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from "../../app/store";
+import axios from "axios";
 
-export interface User {
+const USERS_URL = "https://jsonplaceholder.typicode.com/users";
+
+export type User = {
   id: string;
   name: string;
-}
-
-const initialState: Array<User> = [
-  { id: "0", name: "Tiago" },
-  { id: "1", name: "João" },
-  { id: "2", name: "Maria" },
-];
+  username: string;
+  email: string;
+  address: {
+    street: string;
+    suite: string;
+    city: string;
+    zipcode: string;
+    geo: {
+      lat: string;
+      lng: string;
+    };
+  };
+  phone: string;
+  website: string;
+  company: {
+    name: string;
+    catchPhrase: string;
+    bs: string;
+  };
+};
+export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
+  try {
+    const response = await axios.get(USERS_URL);
+    return [...response.data];
+  } catch (error) {
+    return (error as Error).message;
+  }
+});
+const initialState = {
+  users: [] as User[],
+};
 
 const userSlice = createSlice({
   name: "users",
   initialState,
   reducers: {},
+  extraReducers: (builder) => {
+    builder.addCase(
+      fetchUsers.fulfilled,
+      (state, action: PayloadAction<string | any[]>) => {
+        state.users = action.payload as User[];
+      }
+    );
+    builder.addCase(fetchUsers.rejected, (state, action) => {
+      state.users = []; // Reset users array on error
+    });
+  },
 });
 
 export const selecdtAllusers = (state: RootState) => state.users;

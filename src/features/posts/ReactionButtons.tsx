@@ -1,7 +1,7 @@
 import React from "react";
 import { useAppDispatch } from "../../app/hooks";
 import { Post, reactionAdded } from "./postSlice";
-import { HStack, IconButton } from "@chakra-ui/react";
+import { HStack } from "@chakra-ui/react";
 
 const reactionEmoji = {
   thumbsUp: "👍",

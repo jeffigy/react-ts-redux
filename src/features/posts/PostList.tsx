@@ -1,43 +1,48 @@
-import React from "react";
-import { useSelector } from "react-redux";
-import { Post, selectAllPosts } from "./postSlice";
+import React, { useEffect } from "react";
+import { useAppSelector, useAppDispatch } from "../../app/hooks";
+import {
+  Post,
+  selectAllPosts,
+  getPostsError,
+  getPostsStatus,
+  fetchPosts,
+} from "./postSlice";
 import { Flex, Text } from "@chakra-ui/react";
-import PostAuthor from "./PostAuthor";
-import TimeAgo from "./TimeAgo";
-import ReactionButtons from "./ReactionButtons";
+import PostsExcerpt from "./PostsExcerpt";
 
 type PostListProps = {};
 
 const PostList: React.FC<PostListProps> = () => {
-  const posts = useSelector(selectAllPosts);
+  const posts = useAppSelector(selectAllPosts);
+  const postsStatus = useAppSelector(getPostsStatus);
+  const error = useAppSelector(getPostsError);
+  const dispatch = useAppDispatch();
 
   const orderedPosts = posts
     .slice()
     .sort((a, b) => b.date.localeCompare(a.date));
+
+  useEffect(() => {
+    if (postsStatus === "idle") {
+      dispatch(fetchPosts());
+    }
+  }, []);
+
   return (
     <Flex direction="column">
       <Text fontSize={"24px"} mx={"auto"} mb={"10px"} fontWeight={"black"}>
         Posts
       </Text>
-      {orderedPosts.map((post: Post) => (
-        <Flex
-          minW={"200px"}
-          direction={"column"}
-          p={"5px"}
-          mb={"10px"}
-          key={post.id}
-          border={"1px solid black"}
-          borderRadius={"10px"}
-        >
-          <Text fontSize={"20px"} mb={"5px"} fontWeight={"bold"}>
-            {post.title}
-          </Text>
-          <p className="post-content">{post.content.substring(0, 100)}</p>
-          <PostAuthor userId={post.userId} />
-          <TimeAgo timestamp={post.date} />
-          <ReactionButtons post={post} />
-        </Flex>
-      ))}
+
+      {postsStatus === "loading" && <div>Loading...</div>}
+      {postsStatus === "succeeded" && (
+        <div>
+          {orderedPosts.map((post: Post) => (
+            <PostsExcerpt key={post.id} post={post} />
+          ))}
+        </div>
+      )}
+      {postsStatus === "failed" && <div>{error}</div>}
     </Flex>
   );
 };

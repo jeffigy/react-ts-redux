@@ -10,8 +10,9 @@ import {
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { postAdded } from "./postSlice";
+import { addNewPost } from "./postSlice";
 import { User, selecdtAllusers } from "../users/usersSlice";
+import { nanoid } from "@reduxjs/toolkit";
 type AddPostFormProps = {};
 
 const AddPostForm: React.FC<AddPostFormProps> = () => {
@@ -19,21 +20,45 @@ const AddPostForm: React.FC<AddPostFormProps> = () => {
 
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
-  const [userId, setUserId] = useState<string>("");
-
+  const [userId, setUserId] = useState<number>(0);
+  const [addRequestStatus, setAddRequestStatus] = useState("idle");
   const users = useAppSelector(selecdtAllusers);
+
+  const canSave =
+    [title, content, userId].every(Boolean) && addRequestStatus === "idle";
 
   const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (title && content) {
-      dispatch(postAdded(title, content, userId));
-      setTitle("");
-      setContent("");
+    if (canSave) {
+      try {
+        setAddRequestStatus("pending");
+        dispatch(
+          addNewPost({
+            id: nanoid(),
+            title,
+            body: content,
+            userId,
+            date: new Date().toISOString(),
+            reactions: {
+              thumbsUp: 0,
+              wow: 0,
+              heart: 0,
+              rocket: 0,
+              coffee: 0,
+            },
+          })
+        );
+        setTitle("");
+        setContent("");
+        setUserId(0);
+      } catch (err) {
+        console.error("Failed to save the post: ", err);
+      } finally {
+        setAddRequestStatus("idle");
+      }
     }
   };
-
-  const canSave = Boolean(title) && Boolean(content) && Boolean(userId);
 
   return (
     <form onSubmit={onFormSubmit}>
@@ -61,9 +86,9 @@ const AddPostForm: React.FC<AddPostFormProps> = () => {
               placeholder="Select user"
               name="user"
               value={userId}
-              onChange={(e) => setUserId(e.target.value)}
+              onChange={(e) => setUserId(parseInt(e.target.value))}
             >
-              {users.map((user: User) => (
+              {users.users.map((user: User) => (
                 <option key={user.id} value={user.id}>
                   {user.name}
                 </option>
