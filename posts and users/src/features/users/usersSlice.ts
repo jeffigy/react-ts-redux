@@ -50,7 +50,7 @@ const userSlice = createSlice({
         state.users = action.payload as User[];
       }
     );
-    builder.addCase(fetchUsers.rejected, (state, action) => {
+    builder.addCase(fetchUsers.rejected, (state) => {
       state.users = []; // Reset users array on error
     });
   },
