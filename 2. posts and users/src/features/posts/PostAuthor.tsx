@@ -1,7 +1,7 @@
 import { selecdtAllusers } from "../users/usersSlice";
 import React from "react";
 import { useAppSelector } from "../../app/hooks";
-import { User } from "../../features/users/usersSlice"; // Corrected the path to the User type
+import { User } from "../users/usersSlice"; // Corrected the path to the User type
 
 type PostAuthorProps = {
   userId: string; // Add the userId prop
