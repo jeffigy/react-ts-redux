@@ -1,4 +1,4 @@
-import { selecdtAllusers } from "../users/usersSlice";
+import { selectAllusers } from "../users/usersSlice";
 import React from "react";
 import { useAppSelector } from "../../app/hooks";
 import { User } from "../users/usersSlice"; // Corrected the path to the User type

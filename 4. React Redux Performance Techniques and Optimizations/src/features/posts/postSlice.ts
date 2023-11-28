@@ -27,6 +27,7 @@ const initialState = {
   posts: [] as Post[],
   status: "idle" as Status,
   error: null as string | null,
+  count: 0,
 };
 
 const nanoid = customAlphabet("1234567890", 5);
@@ -85,30 +86,6 @@ const postSlice = createSlice({
   name: "posts",
   initialState,
   reducers: {
-    postAdded: {
-      reducer(state, action: PayloadAction<Post>) {
-        state.posts.push(action.payload);
-      },
-      // prepare callback
-      prepare(title: string, body: string, userId: number) {
-        return {
-          payload: {
-            id: Number(nanoid()),
-            title,
-            body,
-            date: new Date().toISOString(),
-            userId,
-            reactions: {
-              thumbsUp: 0,
-              wow: 0,
-              heart: 0,
-              rocket: 0,
-              coffee: 0,
-            },
-          },
-        };
-      },
-    },
     reactionAdded(
       state,
       action: PayloadAction<{ postId: number; reaction: string }>
@@ -120,6 +97,9 @@ const postSlice = createSlice({
           reaction as keyof typeof existingPost.reactions
         ]++;
       }
+    },
+    increaseCount(state) {
+      state.count = state.count + 1;
     },
   },
   extraReducers: (builder) => {
@@ -208,7 +188,8 @@ const postSlice = createSlice({
 export const selectAllPosts = (state: RootState) => state.posts.posts;
 export const getPostsStatus = (state: RootState) => state.posts.status;
 export const getPostsError = (state: RootState) => state.posts.error;
+export const getCount = (state: RootState) => state.posts.count;
 export const selectPostById = (state: RootState, postId: number) =>
   state.posts.posts.find((post) => post.id === postId);
-export const { postAdded, reactionAdded } = postSlice.actions;
+export const { increaseCount, reactionAdded } = postSlice.actions;
 export default postSlice.reducer;

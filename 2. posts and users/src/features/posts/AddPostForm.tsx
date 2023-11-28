@@ -11,7 +11,7 @@ import {
 import React, { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { addNewPost } from "./postSlice";
-import { User, selecdtAllusers } from "../users/usersSlice";
+import { User, selectAllusers } from "../users/usersSlice";
 import { nanoid } from "@reduxjs/toolkit";
 type AddPostFormProps = {};
 
@@ -22,7 +22,7 @@ const AddPostForm: React.FC<AddPostFormProps> = () => {
   const [content, setContent] = useState<string>("");
   const [userId, setUserId] = useState<number>(0);
   const [addRequestStatus, setAddRequestStatus] = useState("idle");
-  const users = useAppSelector(selecdtAllusers);
+  const users = useAppSelector(selectAllusers);
 
   const canSave =
     [title, content, userId].every(Boolean) && addRequestStatus === "idle";
