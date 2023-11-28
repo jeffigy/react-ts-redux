@@ -3,13 +3,26 @@ import PostAuthor from "./PostAuthor";
 import TimeAgo from "./TimeAgo";
 import ReactionButtons from "./ReactionButtons";
 import { Card, CardBody, CardHeader, Flex, Text } from "@chakra-ui/react";
-import { Post } from "./postSlice";
 import { Link } from "react-router-dom";
+import { useAppSelector } from "../../app/hooks";
+import { selectPostById } from "./postSlice";
 type PostsExcerptProps = {
-  post: Post;
+  postId: number;
 };
 
-const PostsExcerpt: React.FC<PostsExcerptProps> = ({ post }) => {
+const PostsExcerpt: React.FC<PostsExcerptProps> = ({ postId }) => {
+  const post = useAppSelector((state) => selectPostById(state, postId));
+  if (!post) {
+    return (
+      <Card as={Link} to={`post/${postId}`} direction="column" mb={"10px"}>
+        <CardHeader as={Flex} justify={"center"}>
+          <Text fontSize={"24px"} fontWeight={"bold"}>
+            Loading...
+          </Text>
+        </CardHeader>
+      </Card>
+    );
+  }
   return (
     <Card as={Link} to={`post/${post.id}`} direction="column" mb={"10px"}>
       <CardHeader as={Flex} justify={"center"}>

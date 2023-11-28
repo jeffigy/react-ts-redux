@@ -1,7 +1,7 @@
 import React from "react";
 import { selectUserById } from "./usersSlice";
 import { useAppSelector } from "../../app/hooks";
-import { selectAllPosts, selectPostsByUser } from "../posts/postSlice";
+import { selectPostsByUser } from "../posts/postSlice";
 import { Link, useParams } from "react-router-dom";
 import { Card, CardBody, Flex, Text } from "@chakra-ui/react";
 

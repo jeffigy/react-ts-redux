@@ -3,12 +3,17 @@ import {
   createAsyncThunk,
   createSlice,
   createSelector,
+  createEntityAdapter,
 } from "@reduxjs/toolkit";
 import axios from "axios";
 import { sub } from "date-fns";
 import { RootState } from "../../app/store";
 
 const POSTS_URL = "https://jsonplaceholder.typicode.com/posts";
+
+const postsAdapter = createEntityAdapter<Post>({
+  sortComparer: (a, b) => b.date.localeCompare(a.date),
+});
 
 // create type for status
 export type Status = "idle" | "loading" | "succeeded" | "failed";
@@ -27,12 +32,11 @@ export type Post = {
     coffee: number;
   };
 };
-const initialState = {
-  posts: [] as Post[],
+const initialState = postsAdapter.getInitialState({
   status: "idle" as Status,
   error: null as string | null,
   count: 0,
-};
+});
 
 export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
   try {
@@ -93,7 +97,7 @@ const postSlice = createSlice({
       action: PayloadAction<{ postId: number; reaction: string }>
     ) {
       const { postId, reaction } = action.payload;
-      const existingPost = state.posts.find((post: Post) => post.id === postId);
+      const existingPost = state.entities[postId];
       if (existingPost) {
         existingPost.reactions[
           reaction as keyof typeof existingPost.reactions
@@ -129,16 +133,16 @@ const postSlice = createSlice({
             return post;
           });
           //! this lined duplicates the existing data
-          // console.log((state.posts = state.posts.concat(loadedPosts)));
+          postsAdapter.upsertMany(state, loadedPosts);
 
           //* new solution but don't if this will work later on
-          const newPosts = loadedPosts.filter((newPost) => {
-            return !state.posts.some(
-              (existingPost) => existingPost.id === newPost.id
-            );
-          });
+          // const newPosts = loadedPosts.filter((newPost) => {
+          //   return !state.posts.some(
+          //     (existingPost) => existingPost.id === newPost.id
+          //   );
+          // });
 
-          state.posts = state.posts.concat(newPosts);
+          // postsAdapter.upsertMany(state, newPosts);
         }
       }
     );
@@ -157,7 +161,7 @@ const postSlice = createSlice({
         coffee: 0,
       };
       console.log(action.payload);
-      state.posts.push(action.payload);
+      postsAdapter.addOne(state, action.payload);
     });
     builder.addCase(
       updatePost.fulfilled,
@@ -167,10 +171,8 @@ const postSlice = createSlice({
           console.log(action.payload);
           return;
         }
-        const { id } = action.payload;
         action.payload.date = new Date().toISOString();
-        const posts = state.posts.filter((post) => post.id !== id);
-        state.posts = [...posts, action.payload];
+        postsAdapter.upsertOne(state, action.payload);
       }
     );
     builder.addCase(deletePost.fulfilled, (state, action) => {
@@ -181,18 +183,22 @@ const postSlice = createSlice({
         return;
       }
       const { id } = payload;
-      const posts = state.posts.filter((post) => post.id !== id);
-      state.posts = posts;
+      postsAdapter.removeOne(state, id);
     });
   },
 });
+// getSelectors creates these selectors and we rename them with aliases using destructuring
+export const {
+  selectAll: selectAllPosts,
+  selectById: selectPostById,
+  selectIds: selectPostIds,
+  // Pass in a selector that returns the posts slice of state
+} = postsAdapter.getSelectors<RootState>((state) => state.posts);
 
-export const selectAllPosts = (state: RootState) => state.posts.posts;
 export const getPostsStatus = (state: RootState) => state.posts.status;
 export const getPostsError = (state: RootState) => state.posts.error;
 export const getCount = (state: RootState) => state.posts.count;
-export const selectPostById = (state: RootState, postId: number) =>
-  state.posts.posts.find((post) => post.id === postId);
+
 //  selectPostsByUser is a selector that accepts two arguments: the Redux state and the user ID.
 export const selectPostsByUser = createSelector(
   [selectAllPosts, (state, userId) => userId],
