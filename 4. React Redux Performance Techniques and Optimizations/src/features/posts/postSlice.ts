@@ -1,7 +1,11 @@
-import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import {
+  PayloadAction,
+  createAsyncThunk,
+  createSlice,
+  createSelector,
+} from "@reduxjs/toolkit";
 import axios from "axios";
 import { sub } from "date-fns";
-import { customAlphabet } from "nanoid";
 import { RootState } from "../../app/store";
 
 const POSTS_URL = "https://jsonplaceholder.typicode.com/posts";
@@ -29,8 +33,6 @@ const initialState = {
   error: null as string | null,
   count: 0,
 };
-
-const nanoid = customAlphabet("1234567890", 5);
 
 export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
   try {
@@ -191,5 +193,10 @@ export const getPostsError = (state: RootState) => state.posts.error;
 export const getCount = (state: RootState) => state.posts.count;
 export const selectPostById = (state: RootState, postId: number) =>
   state.posts.posts.find((post) => post.id === postId);
+//  selectPostsByUser is a selector that accepts two arguments: the Redux state and the user ID.
+export const selectPostsByUser = createSelector(
+  [selectAllPosts, (state, userId) => userId],
+  (posts, userId) => posts.filter((post) => post.userId === userId)
+);
 export const { increaseCount, reactionAdded } = postSlice.actions;
 export default postSlice.reducer;

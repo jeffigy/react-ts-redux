@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { User, selectAllusers } from "../users/usersSlice";
-import { Status, selectPostById, updatePost, deletePost } from "./postSlice";
+import { selectPostById, updatePost, deletePost } from "./postSlice";
 import {
   Button,
   Card,

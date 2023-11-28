@@ -1,7 +1,7 @@
 import React from "react";
 import { selectUserById } from "./usersSlice";
 import { useAppSelector } from "../../app/hooks";
-import { selectAllPosts } from "../posts/postSlice";
+import { selectAllPosts, selectPostsByUser } from "../posts/postSlice";
 import { Link, useParams } from "react-router-dom";
 import { Card, CardBody, Flex, Text } from "@chakra-ui/react";
 
@@ -11,10 +11,9 @@ const Userpage: React.FC<UserpageProps> = () => {
   const { userId } = useParams();
   const user = useAppSelector((state) => selectUserById(state, Number(userId)));
 
-  const postsForUser = useAppSelector((state) => {
-    const allPosts = selectAllPosts(state);
-    return allPosts.filter((post) => post.userId == Number(userId));
-  });
+  const postsForUser = useAppSelector((state) =>
+    selectPostsByUser(state, Number(userId))
+  );
 
   if (!user) {
     return null; // or loading state
