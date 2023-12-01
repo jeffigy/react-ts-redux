@@ -6,7 +6,6 @@ import {
   IconButton,
   Card,
   CardBody,
-  Checkbox,
 } from "@chakra-ui/react";
 import { faTrash, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";

@@ -1,8 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
-import { Provider } from "react-redux";
-import { store } from "./app/store.ts";
 import { ChakraProvider } from "@chakra-ui/react";
 import { ApiProvider } from "@reduxjs/toolkit/query/react";
 import { apiSlice } from "./features/api/apiSlice.ts";
