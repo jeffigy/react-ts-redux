@@ -1,8 +1,7 @@
 import React from "react";
+import TodoList from "./features/todos/TodoList";
 
-type AppProps = {};
-
-const App: React.FC<AppProps> = () => {
-  return <div>Have a good coding</div>;
+const App = () => {
+  return <TodoList />;
 };
 export default App;
