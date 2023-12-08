@@ -4,12 +4,12 @@ import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
 import App from "./App.tsx";
 import { store } from "./app/store.ts";
-import { fetchUsers } from "./features/users/usersSlice.ts";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { fetchPosts } from "./features/posts/postSlice.ts";
+import { extendedApiSlice } from "./features/posts/postSlice";
 
-store.dispatch(fetchUsers());
-store.dispatch(fetchPosts());
+import { usersApiSlice } from "./features/users/usersSlice";
+store.dispatch(extendedApiSlice.endpoints.getPosts.initiate({}));
+store.dispatch(usersApiSlice.endpoints.getUsers.initiate({}));
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

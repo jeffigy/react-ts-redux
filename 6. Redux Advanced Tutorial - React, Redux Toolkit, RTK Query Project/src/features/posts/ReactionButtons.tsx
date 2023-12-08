@@ -1,6 +1,5 @@
 import React from "react";
-import { useAppDispatch } from "../../app/hooks";
-import { Post, reactionAdded } from "./postSlice";
+import { Post, useAddReactionMutation } from "./postSlice";
 import { HStack } from "@chakra-ui/react";
 
 const reactionEmoji = {
@@ -15,7 +14,7 @@ type ReactionButtonsProps = {
 };
 
 const ReactionButtons: React.FC<ReactionButtonsProps> = ({ post }) => {
-  const dispatch = useAppDispatch();
+  const [addReaction] = useAddReactionMutation();
   return (
     <HStack>
       {Object.entries(reactionEmoji).map(([name, emoji]) => (
@@ -23,11 +22,16 @@ const ReactionButtons: React.FC<ReactionButtonsProps> = ({ post }) => {
           key={name}
           type="button"
           className="muted-button reaction-button"
-          onClick={() =>
-            dispatch(reactionAdded({ postId: post.id, reaction: name }))
-          }
+          onClick={() => {
+            const newValue =
+              post.reactions[name as keyof typeof reactionEmoji] + 1;
+            addReaction({
+              postId: post.id,
+              reaction: name as keyof typeof reactionEmoji,
+            });
+          }}
         >
-          {emoji} {post.reactions[name as keyof typeof reactionEmoji]}
+          {emoji}
         </button>
       ))}
     </HStack>

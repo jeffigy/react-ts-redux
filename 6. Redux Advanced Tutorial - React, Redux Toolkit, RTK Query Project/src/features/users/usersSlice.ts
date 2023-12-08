@@ -1,8 +1,7 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSelector, createEntityAdapter } from "@reduxjs/toolkit";
+import { apiSlice } from "../api/apiSlice";
 import { RootState } from "../../app/store";
 import axios from "axios";
-
-const USERS_URL = "https://jsonplaceholder.typicode.com/users";
 
 export type User = {
   id: number;
@@ -27,37 +26,44 @@ export type User = {
     bs: string;
   };
 };
-export const fetchUsers = createAsyncThunk("users/fetchUsers", async () => {
-  try {
-    const response = await axios.get(USERS_URL);
-    return [...response.data];
-  } catch (error) {
-    return (error as Error).message;
-  }
-});
-const initialState = {
-  users: [] as User[],
-};
+const usersAdapter = createEntityAdapter();
 
-const userSlice = createSlice({
-  name: "users",
-  initialState,
-  reducers: {},
-  extraReducers: (builder) => {
-    builder.addCase(
-      fetchUsers.fulfilled,
-      (state, action: PayloadAction<string | any[]>) => {
-        state.users = action.payload as User[];
-      }
-    );
-    builder.addCase(fetchUsers.rejected, (state) => {
-      state.users = []; // Reset users array on error
-    });
-  },
+const initialState = usersAdapter.getInitialState();
+
+export const usersApiSlice = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    getUsers: builder.query({
+      query: () => "/users",
+      transformResponse: (responseData: unknown) => {
+        return usersAdapter.setAll(initialState, responseData as User[]);
+      },
+      providesTags: (result, error, arg) => [
+        { type: "User" as const, id: "LIST" },
+        ...(result?.ids ?? []).map((id) => ({ type: "User" as const, id })),
+      ],
+    }),
+  }),
 });
 
-export const selectAllusers = (state: RootState) => state.users;
+export const { useGetUsersQuery } = usersApiSlice;
 
-export const selectUserById = (state: RootState, userId: number) =>
-  state.users.users.find((user) => user.id === userId);
-export default userSlice.reducer;
+// returns the query result object
+export const selectUsersResult = usersApiSlice.endpoints.getUsers.select(
+  (state: any) => state
+);
+
+// Creates memoized selector
+const selectUsersData = createSelector(
+  selectUsersResult,
+  (usersResult) => usersResult.data // normalized state object with ids & entities
+);
+
+//getSelectors creates these selectors and we rename them with aliases using destructuring
+export const {
+  selectAll: selectAllUsers,
+  selectById: selectUserById,
+  selectIds: selectUserIds,
+  // Pass in a selector that returns the posts slice of state
+} = usersAdapter.getSelectors<RootState>(
+  (state) => selectUsersData(state) ?? initialState
+);

@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { User, selectAllusers } from "../users/usersSlice";
-import { selectPostById, updatePost, deletePost } from "./postSlice";
+import { User, selectAllUsers } from "../users/usersSlice";
+import {
+  selectPostById,
+  useUpdatePostMutation,
+  useDeletePostMutation,
+} from "./postSlice";
 import {
   Button,
   Card,
@@ -12,6 +16,7 @@ import {
   FormControl,
   FormLabel,
   Input,
+  ModalContent,
   Select,
   Stack,
   Textarea,
@@ -20,54 +25,45 @@ import {
 const EditPost = () => {
   const { postId } = useParams();
   const navigate = useNavigate();
+  const [updatePost, { isLoading }] = useUpdatePostMutation();
+  const [deletePost] = useDeletePostMutation();
   const post = useAppSelector((state) => selectPostById(state, Number(postId)));
   const [title, settitle] = useState(post?.title || "");
   const [body, setbody] = useState(post?.body || "");
   const [userId, setuserId] = useState(post?.userId || 0);
-  const [requestStatus, setrequestStatus] = useState("idle");
-  const users = useAppSelector(selectAllusers);
-  const dispatch = useAppDispatch();
+  const users = useAppSelector(selectAllUsers);
 
-  const canSave =
-    [title, body, userId].every(Boolean) && requestStatus === "idle";
+  const canSave = [title, body, userId].every(Boolean) && !isLoading;
 
-  const onFormSubmit = () => {
+  const onFormSubmit = async () => {
     if (canSave) {
       try {
-        setrequestStatus("pending");
-        dispatch(
-          updatePost({
-            id: post?.id || 0,
-            title,
-            body,
-            userId,
-            reactions: post?.reactions || [],
-          })
-        ).unwrap();
+        await updatePost({
+          id: post?.id,
+          title,
+          body,
+          userId,
+        }).unwrap();
         settitle("");
         setbody("");
         setuserId(0);
         navigate(`/post/${postId}`);
       } catch (error) {
         console.error("Failed to delete the post", (error as Error).message);
-      } finally {
-        setrequestStatus("idle");
       }
     }
   };
 
-  const onDelete = () => {
+  const onDelete = async () => {
     try {
-      setrequestStatus("pending");
-      dispatch(deletePost({ id: post?.id || 0 })).unwrap();
+      await deletePost({ id: post?.id }).unwrap();
+
       settitle("");
       setbody("");
       setuserId(0);
       navigate("/");
     } catch (error) {
       console.error("Failed to delete the post", (error as Error).message);
-    } finally {
-      setrequestStatus("idle");
     }
   };
 
@@ -92,7 +88,7 @@ const EditPost = () => {
               value={userId}
               onChange={(e) => setuserId(Number(e.target.value))}
             >
-              {users.users.map((user: User) => (
+              {users.map((user: any) => (
                 <option key={user.id} value={user.id}>
                   {user.name}
                 </option>

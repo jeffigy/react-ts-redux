@@ -1,19 +1,20 @@
-import React from "react";
 import { selectUserById } from "./usersSlice";
 import { useAppSelector } from "../../app/hooks";
-import { selectPostsByUser } from "../posts/postSlice";
+import { Post, useGetPostByUserIdQuery } from "../posts/postSlice";
 import { Link, useParams } from "react-router-dom";
 import { Card, CardBody, Flex, Text } from "@chakra-ui/react";
 
-type UserpageProps = {};
-
-const Userpage: React.FC<UserpageProps> = () => {
+const Userpage = () => {
   const { userId } = useParams();
   const user = useAppSelector((state) => selectUserById(state, Number(userId)));
 
-  const postsForUser = useAppSelector((state) =>
-    selectPostsByUser(state, Number(userId))
-  );
+  const {
+    data: postsForUser,
+    isLoading,
+    isSuccess,
+    isError,
+    error,
+  } = useGetPostByUserIdQuery(userId);
 
   if (!user) {
     return null; // or loading state
@@ -23,11 +24,21 @@ const Userpage: React.FC<UserpageProps> = () => {
     <Flex direction={"column"} justify={"center"} align={"center"} p={"50px"}>
       <Text fontSize={"3xl"}>{user.name}</Text>
 
-      {postsForUser.map((post) => (
-        <Card as={Link} mb={"10px"} w={"full"} to={`/post/${post.id}`}>
-          <CardBody>{post.title}</CardBody>
-        </Card>
-      ))}
+      {isLoading && <div>Loading...</div>}
+      {isSuccess && (
+        <>
+          {Array.isArray(postsForUser) && (
+            <div>
+              {postsForUser.map((post: Post) => (
+                <Card as={Link} mb={"10px"} w={"full"} to={`/post/${post.id}`}>
+                  <CardBody>{post.title}</CardBody>
+                </Card>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+      {isError && <div>{error.toString()}</div>}
     </Flex>
   );
 };

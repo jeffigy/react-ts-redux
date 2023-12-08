@@ -1,27 +1,23 @@
-import React from "react";
 import { useAppSelector } from "../../app/hooks";
-import { selectPostIds, getPostsError, getPostsStatus } from "./postSlice";
+import { selectPostIds, useGetPostsQuery } from "./postSlice";
 import { Flex } from "@chakra-ui/react";
 import PostsExcerpt from "./PostsExcerpt";
 
-type PostListProps = {};
-
-const PostList: React.FC<PostListProps> = () => {
+const PostList = () => {
+  const { isLoading, isSuccess, isError, error } = useGetPostsQuery({});
   const orderedPostIds = useAppSelector(selectPostIds);
-  const postsStatus = useAppSelector(getPostsStatus);
-  const error = useAppSelector(getPostsError);
-
+  console.log("orderedPostIds", orderedPostIds);
   return (
     <Flex direction="column" p={5}>
-      {postsStatus === "loading" && <div>Loading...</div>}
-      {postsStatus === "succeeded" && (
+      {isLoading && <div>Loading...</div>}
+      {isSuccess && (
         <div>
           {orderedPostIds.map((postId) => (
             <PostsExcerpt key={postId} postId={Number(postId)} />
           ))}
         </div>
       )}
-      {postsStatus === "failed" && <div>{error}</div>}
+      {isError && <div>{error.toString()}</div>}
     </Flex>
   );
 };

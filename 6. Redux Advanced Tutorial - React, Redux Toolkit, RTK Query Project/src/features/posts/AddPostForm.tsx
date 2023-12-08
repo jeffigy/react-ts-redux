@@ -10,55 +10,36 @@ import {
 } from "@chakra-ui/react";
 import { customAlphabet } from "nanoid";
 import React, { useState } from "react";
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { addNewPost } from "./postSlice";
-import { User, selectAllusers } from "../users/usersSlice";
+import { useAppSelector } from "../../app/hooks";
+import { User, selectAllUsers } from "../users/usersSlice";
 import { useNavigate } from "react-router-dom";
+import { useAddNewPostMutation } from "./postSlice";
 type AddPostFormProps = {};
 
 const AddPostForm: React.FC<AddPostFormProps> = () => {
-  const dispatch = useAppDispatch();
+  const [addNewPost, { isLoading }] = useAddNewPostMutation();
   const navigate = useNavigate();
   const nanoid = customAlphabet("1234567890", 5);
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
   const [userId, setUserId] = useState<number>(0);
-  const [addRequestStatus, setAddRequestStatus] = useState("idle");
-  const users = useAppSelector(selectAllusers);
+  const users = useAppSelector(selectAllUsers);
 
-  const canSave =
-    [title, content, userId].every(Boolean) && addRequestStatus === "idle";
+  const canSave = [title, content, userId].every(Boolean) && !isLoading;
 
-  const onFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (canSave) {
       try {
-        setAddRequestStatus("pending");
-        dispatch(
-          addNewPost({
-            id: Number(nanoid()),
-            title,
-            body: content,
-            userId,
-            date: new Date().toISOString(),
-            reactions: {
-              thumbsUp: 0,
-              wow: 0,
-              heart: 0,
-              rocket: 0,
-              coffee: 0,
-            },
-          })
-        );
+        await addNewPost({ title, body: content, userId }).unwrap();
+
         setTitle("");
         setContent("");
         setUserId(0);
         navigate("/");
       } catch (err) {
         console.error("Failed to save the post: ", err);
-      } finally {
-        setAddRequestStatus("idle");
       }
     }
   };
@@ -91,7 +72,7 @@ const AddPostForm: React.FC<AddPostFormProps> = () => {
               value={userId}
               onChange={(e) => setUserId(parseInt(e.target.value))}
             >
-              {users.users.map((user: User) => (
+              {users.map((user: any) => (
                 <option key={user.id} value={user.id}>
                   {user.name}
                 </option>
