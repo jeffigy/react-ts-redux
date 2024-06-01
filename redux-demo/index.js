@@ -21,7 +21,7 @@ const initialCakeState = {
 const initialIceCreamState = {
   numberOfIceCream: 20,
 };
-
+//* =============================== Actions ============================================
 // Action Creator
 function buyCake() {
   //* Action
@@ -35,8 +35,7 @@ function buyIcreCream() {
     type: BUY_ICECREAM,
   };
 }
-
-//* Reducer
+//* =============================== Reducers ===========================================
 // (previousState, action) => newState
 //* old reducer
 // const reducer = (state = initialState, action) => {
@@ -85,7 +84,7 @@ const iceCreamReducer = (state = initialIceCreamState, action) => {
   }
 };
 
-//* Store
+//* =================================== Store ===============================================
 // creates store
 const rootReducer = combineReducers({
   cake: cakeReducer,
