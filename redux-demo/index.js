@@ -1,5 +1,6 @@
 const redux = require("redux");
 const createStore = redux.legacy_createStore;
+const combineReducers = redux.combineReducers;
 
 const BUY_CAKE = "BUY_CAKE";
 const BUY_ICECREAM = "BUY_ICECREAM";
@@ -53,7 +54,7 @@ function buyIcreCream() {
 //     }
 //   };
 
-//* New reducer
+//* New reducers
 const cakeReducer = (state = initialCakeState, action) => {
   switch (action.type) {
     case BUY_CAKE:
@@ -82,7 +83,12 @@ const iceCreamReducer = (state = initialIceCreamState, action) => {
 
 //* Store
 // creates store
-const store = createStore(reducer);
+const rootReducer = combineReducers({
+  cake: cakeReducer,
+  iceCream: iceCreamReducer,
+});
+// const store = createStore(reducer);
+const store = createStore(rootReducer);
 console.log("initial state", store.getState());
 // subscribe() registers a listener function
 // subscribe() will be called every time an action is dispatched to the store
