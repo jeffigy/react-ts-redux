@@ -2,6 +2,20 @@ const redux = require("redux");
 const createStore = redux.legacy_createStore;
 
 const BUY_CAKE = "BUY_CAKE";
+const BUY_ICECREAM = "BUY_ICECREAM";
+
+//* Old initialState
+// const initialState = {
+//     numberOfCakes: 10,
+//     numberOfIceCream: 20,
+//   };
+
+const initialCakeState = {
+  numberOfCakes: 10,
+};
+const initialIceCreamState = {
+  numberOfIceCream: 20,
+};
 
 // Action Creator
 function buyCake() {
@@ -11,19 +25,54 @@ function buyCake() {
     info: "first redux action",
   };
 }
+function buyIcreCream() {
+  return {
+    type: BUY_ICECREAM,
+  };
+}
 
 //* Reducer
 // (previousState, action) => newState
-const initialState = {
-  numberOfCakes: 10,
-};
+//* old reducer
+// const reducer = (state = initialState, action) => {
+//     switch (action.type) {
+//       case BUY_CAKE:
+//         return {
+//           ...state,
+//           numberOfCakes: state.numberOfCakes - 1,
+//         };
 
-const reducer = (state = initialState, action) => {
+//       case BUY_ICECREAM:
+//         return {
+//           ...state,
+//           numberOfIceCream: state.numberOfIceCream - 1,
+//         };
+
+//       default:
+//         return state;
+//     }
+//   };
+
+//* New reducer
+const cakeReducer = (state = initialCakeState, action) => {
   switch (action.type) {
     case BUY_CAKE:
       return {
         ...state,
         numberOfCakes: state.numberOfCakes - 1,
+      };
+
+    default:
+      return state;
+  }
+};
+
+const iceCreamReducer = (state = initialIceCreamState, action) => {
+  switch (action.type) {
+    case BUY_ICECREAM:
+      return {
+        ...state,
+        numberOfIceCream: state.numberOfIceCream - 1,
       };
 
     default:
@@ -37,11 +86,15 @@ const store = createStore(reducer);
 console.log("initial state", store.getState());
 // subscribe() registers a listener function
 // subscribe() will be called every time an action is dispatched to the store
-store.subscribe(() => console.log("updated state", store.getState()));
+const unsubscribe = store.subscribe(() =>
+  console.log("updated state", store.getState())
+);
 store.dispatch(buyCake());
 store.dispatch(buyCake());
 store.dispatch(buyCake());
-store.dispatch(buyCake());
+store.dispatch(buyIcreCream());
+store.dispatch(buyIcreCream());
+
 // we need to unsubscribe() at the end to prevent
 // memory leaks/Avoid Unnecessary Computations or to clean up
 unsubscribe();
