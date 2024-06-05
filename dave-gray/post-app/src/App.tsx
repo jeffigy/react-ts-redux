@@ -1,6 +1,8 @@
+import PostsList from "features/posts/PostsList";
+
 const App = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen flex-col items-center justify-center">
       <div className="card bg-neutral text-neutral-content">
         <div className="card-body items-center text-center">
           <form className="w-full max-w-md space-y-5">
@@ -35,6 +37,8 @@ const App = () => {
           </form>
         </div>
       </div>
+
+      <PostsList />
     </div>
   );
 };
