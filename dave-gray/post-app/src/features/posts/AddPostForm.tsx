@@ -49,9 +49,7 @@ const AddPostForm = () => {
               onChange={(e) => setUserId(e.target.value)}
               className="select select-bordered bg-neutral"
             >
-              <option disabled selected>
-                Pick one
-              </option>
+              <option disabled>Pick one</option>
               {users &&
                 users.map((user: UsersType) => (
                   <option key={user.id} value={user.id}>

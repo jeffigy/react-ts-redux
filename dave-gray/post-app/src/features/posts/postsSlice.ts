@@ -7,6 +7,13 @@ export type PostType = {
   content: string;
   userId: string;
   date: string;
+  reactions: {
+    thumbsUp: number;
+    wow: number;
+    heart: number;
+    rocket: number;
+    coffee: number;
+  };
 };
 
 const initialState: PostType[] = [
@@ -16,6 +23,13 @@ const initialState: PostType[] = [
     content: "I've heard good things.",
     userId: "2",
     date: sub(new Date(), { minutes: 10 }).toISOString(),
+    reactions: {
+      thumbsUp: 0,
+      wow: 0,
+      heart: 0,
+      rocket: 0,
+      coffee: 0,
+    },
   },
   {
     id: "2",
@@ -23,6 +37,13 @@ const initialState: PostType[] = [
     content: "The more I say slice, the more I want pizza",
     userId: "0",
     date: sub(new Date(), { minutes: 10 }).toISOString(),
+    reactions: {
+      thumbsUp: 0,
+      wow: 0,
+      heart: 0,
+      rocket: 0,
+      coffee: 0,
+    },
   },
 ];
 
@@ -45,9 +66,30 @@ const postsSlice = createSlice({
             content,
             userId,
             date: new Date().toISOString(),
+            reactions: {
+              thumbsUp: 0,
+              wow: 0,
+              heart: 0,
+              rocket: 0,
+              coffee: 0,
+            },
           },
         };
       },
+    },
+    reactionAdded(
+      state,
+      action: PayloadAction<{
+        postId: string;
+        reaction: keyof PostType["reactions"];
+      }>,
+    ) {
+      const { postId, reaction } = action.payload;
+      const existingPost = state.find((post: PostType) => post.id === postId);
+
+      if (existingPost) {
+        existingPost.reactions[reaction]++;
+      }
     },
   },
 });
@@ -56,6 +98,6 @@ const postsSlice = createSlice({
 //  we dont have to change every component, we could change it once in the slice
 export const selectAllPosts = (state: { posts: PostType[] }) => state.posts;
 
-export const { postAdded } = postsSlice.actions;
+export const { postAdded, reactionAdded } = postsSlice.actions;
 
 export default postsSlice.reducer;
