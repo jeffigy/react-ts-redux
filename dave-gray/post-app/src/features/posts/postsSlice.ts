@@ -1,10 +1,18 @@
-import { PayloadAction, createSlice, nanoid } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  nanoid,
+  createAsyncThunk,
+  PayloadAction,
+} from "@reduxjs/toolkit";
+import axios from "axios";
 import { sub } from "date-fns";
+
+const POSTS_URL = "https://jsonplaceholder.typicode.com/posts";
 
 export type PostType = {
   id: string;
   title: string;
-  content: string;
+  body: string;
   userId: string;
   date: string;
   reactions: {
@@ -16,36 +24,44 @@ export type PostType = {
   };
 };
 
-const initialState: PostType[] = [
-  {
-    id: "1",
-    title: "learning redux toolkit",
-    content: "I've heard good things.",
-    userId: "2",
-    date: sub(new Date(), { minutes: 10 }).toISOString(),
-    reactions: {
-      thumbsUp: 0,
-      wow: 0,
-      heart: 0,
-      rocket: 0,
-      coffee: 0,
-    },
+type initialStateType = {
+  posts: PostType[];
+  status: "idle" | "loading" | "succeeded" | "failed";
+  error: null | string;
+};
+
+const initialState: initialStateType = {
+  posts: [],
+  status: "idle",
+  error: null,
+};
+
+export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
+  try {
+    const res = await axios.get(POSTS_URL);
+    return res.data as PostType[];
+  } catch (error) {
+    throw new Error((error as Error).message);
+  }
+});
+
+type NewPostType = {
+  title: string;
+  body: string;
+  userId: string;
+};
+
+export const addNewPost = createAsyncThunk(
+  "posts/addNewPost",
+  async (initialPost: NewPostType) => {
+    try {
+      const res = await axios.post(POSTS_URL, initialPost);
+      return res.data as PostType;
+    } catch (error) {
+      throw new Error((error as Error).message);
+    }
   },
-  {
-    id: "2",
-    title: "slices...",
-    content: "The more I say slice, the more I want pizza",
-    userId: "0",
-    date: sub(new Date(), { minutes: 10 }).toISOString(),
-    reactions: {
-      thumbsUp: 0,
-      wow: 0,
-      heart: 0,
-      rocket: 0,
-      coffee: 0,
-    },
-  },
-];
+);
 
 const postsSlice = createSlice({
   name: "posts",
@@ -53,17 +69,14 @@ const postsSlice = createSlice({
   reducers: {
     postAdded: {
       reducer(state, action: PayloadAction<PostType>) {
-        state.push(action.payload);
+        state.posts.push(action.payload);
       },
-      // The `prepare` is callback function that allows
-      // pre-processing of the action's payload.
-      prepare(title: string, content: string, userId: string) {
+      prepare(title: string, body: string, userId: string) {
         return {
           payload: {
-            // nanoid generates random Id
             id: nanoid(),
             title,
-            content,
+            body,
             userId,
             date: new Date().toISOString(),
             reactions: {
@@ -85,18 +98,66 @@ const postsSlice = createSlice({
       }>,
     ) {
       const { postId, reaction } = action.payload;
-      const existingPost = state.find((post: PostType) => post.id === postId);
+      const existingPost = state.posts.find(
+        (post: PostType) => post.id === postId,
+      );
 
       if (existingPost) {
         existingPost.reactions[reaction]++;
       }
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchPosts.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(
+        fetchPosts.fulfilled,
+        (state, action: PayloadAction<PostType[]>) => {
+          state.status = "succeeded";
+          let min = 1;
+          const loadedPosts = action.payload.map((post) => {
+            post.date = sub(new Date(), { minutes: min++ }).toISOString();
+            post.reactions = {
+              thumbsUp: 0,
+              wow: 0,
+              heart: 0,
+              rocket: 0,
+              coffee: 0,
+            };
+            return post;
+          });
+          state.posts = loadedPosts;
+        },
+      )
+      .addCase(fetchPosts.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message || "Something went wrong";
+      })
+      .addCase(
+        addNewPost.fulfilled,
+        (state, action: PayloadAction<PostType>) => {
+          action.payload.date = new Date().toISOString();
+          action.payload.reactions = {
+            thumbsUp: 0,
+            wow: 0,
+            heart: 0,
+            rocket: 0,
+            coffee: 0,
+          };
+          state.posts.push(action.payload);
+        },
+      );
+  },
 });
 
-// the selectAllPosts is for if ever the shape of the state changes,
-//  we dont have to change every component, we could change it once in the slice
-export const selectAllPosts = (state: { posts: PostType[] }) => state.posts;
+export const selectAllPosts = (state: { posts: initialStateType }) =>
+  state.posts.posts;
+export const getPostsStatus = (state: { posts: initialStateType }) =>
+  state.posts.status;
+export const getPostsError = (state: { posts: initialStateType }) =>
+  state.posts.error;
 
 export const { postAdded, reactionAdded } = postsSlice.actions;
 

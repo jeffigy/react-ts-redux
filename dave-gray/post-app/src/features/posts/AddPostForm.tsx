@@ -1,7 +1,6 @@
 import { useAppDispatch, useAppSelector } from "app/hooks";
-
 import { useState } from "react";
-import { postAdded } from "./postsSlice";
+import { addNewPost } from "./postsSlice";
 import { UsersType, selectAllUsers } from "features/users/usersSlice";
 
 const AddPostForm = () => {
@@ -9,26 +8,37 @@ const AddPostForm = () => {
   const users = useAppSelector(selectAllUsers);
 
   const [title, setTitle] = useState<string>("");
-  const [content, setContent] = useState<string>("");
-  const [userId, setUserId] = useState("");
+  const [body, setBody] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
+  const [addRequestStatus, setAddRequestStatus] = useState("idle");
 
-  const canSave = Boolean(title) && Boolean(content) && Boolean(userId);
+  const canSave =
+    [title, body, userId].every(Boolean) && addRequestStatus === "idle";
 
-  const onSubmit = (
+  const onSubmit = async (
     e: React.FormEvent<HTMLFormElement | HTMLButtonElement>,
   ) => {
     e.preventDefault();
-    if (title && content) {
-      dispatch(postAdded(title, content, userId));
-      setTitle("");
-      setContent("");
+    if (canSave) {
+      try {
+        setAddRequestStatus("pending");
+        await dispatch(addNewPost({ title, body, userId })).unwrap();
+
+        setTitle("");
+        setBody("");
+        setUserId("");
+      } catch (error) {
+        console.error("Failed to save the post", error);
+      } finally {
+        setAddRequestStatus("idle");
+      }
     }
   };
 
   return (
     <div className="card bg-neutral text-neutral-content">
       <div className="card-body items-center text-center">
-        <form className="w-full max-w-md space-y-5">
+        <form className="w-full max-w-md space-y-5" onSubmit={onSubmit}>
           <label className="form-control w-full max-w-xs">
             <div className="label">
               <span className="label-text">Post Title</span>
@@ -49,31 +59,30 @@ const AddPostForm = () => {
               onChange={(e) => setUserId(e.target.value)}
               className="select select-bordered bg-neutral"
             >
-              <option disabled>Pick one</option>
-              {users &&
-                users.map((user: UsersType) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
+              <option value="" disabled>
+                Pick one
+              </option>
+              {users.map((user: UsersType) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
             </select>
           </label>
-
           <label className="form-control w-full max-w-xs">
             <div className="label">
               <span className="label-text">Content</span>
             </div>
             <textarea
               className="textarea bg-neutral textarea-bordered"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
             />
           </label>
           <div className="card-actions justify-end">
             <button
-              onClick={onSubmit}
-              className="btn btn-primary btn-wide flex"
               type="submit"
+              className="btn btn-primary btn-wide flex"
               disabled={!canSave}
             >
               Add Post
