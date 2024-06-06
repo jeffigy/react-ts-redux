@@ -1,5 +1,7 @@
 import { useAppSelector } from "app/hooks";
 import { PostType, selectAllPosts } from "./postsSlice";
+import PostAuthor from "./PostAuthor";
+import TimeAgo from "./TimeAgo";
 
 const PostsList = () => {
   const posts = useAppSelector(selectAllPosts);
@@ -13,6 +15,8 @@ const PostsList = () => {
             <div className="card-body">
               <h3 className="text-xl font-bold">{post.title}</h3>
               <p>{post.content.substring(0, 100)}</p>
+              <PostAuthor userId={post.userId} />
+              <TimeAgo timestamp={post.date} />
             </div>
           </div>
         ))}
