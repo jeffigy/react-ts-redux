@@ -1,26 +1,17 @@
-import { useAppSelector, useAppDispatch } from "app/hooks";
+import { useAppSelector } from "app/hooks";
 import {
   PostType,
   selectAllPosts,
   getPostsError,
   getPostsStatus,
-  fetchPosts,
 } from "./postsSlice";
 
-import { useEffect } from "react";
 import PostsExcerpt from "./PostsExcerpt";
 
 const PostsList = () => {
-  const dispatch = useAppDispatch();
   const posts = useAppSelector(selectAllPosts);
   const postStatus = useAppSelector(getPostsStatus);
   const error = useAppSelector(getPostsError);
-
-  useEffect(() => {
-    if (postStatus === "idle") {
-      dispatch(fetchPosts());
-    }
-  }, [postStatus, dispatch]);
 
   let content;
   if (postStatus === "loading") {

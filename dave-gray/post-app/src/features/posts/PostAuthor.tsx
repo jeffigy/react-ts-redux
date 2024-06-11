@@ -1,7 +1,7 @@
 import { useAppSelector } from "app/hooks";
 import { UsersType, selectAllUsers } from "features/users/usersSlice";
 type PostAuthorProps = {
-  userId: string;
+  userId: number;
 };
 const PostAuthor: React.FC<PostAuthorProps> = ({ userId }) => {
   const users = useAppSelector(selectAllUsers);

@@ -15,7 +15,7 @@ export type PostType = {
   id: string;
   title: string;
   body: string;
-  userId: string;
+  userId: number;
   date: string;
   reactions: {
     thumbsUp: number;
@@ -55,7 +55,7 @@ export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
 type NewPostType = {
   title: string;
   body: string;
-  userId: string;
+  userId: number;
 };
 
 // createAsyncThunk for adding a new post
@@ -68,6 +68,35 @@ export const addNewPost = createAsyncThunk(
       return res.data as PostType; // Return the data as PostType
     } catch (error) {
       throw new Error((error as Error).message); // Handle errors
+    }
+  },
+);
+
+export const updatePost = createAsyncThunk(
+  "posts/updatePost",
+  async (initialPost: PostType) => {
+    const { id } = initialPost;
+
+    try {
+      const res = await axios.put(`${POSTS_URL}/${id}`, initialPost);
+      return res.data;
+    } catch (error) {
+      // return (error as Error).message;
+      return initialPost; // only for testing redux
+    }
+  },
+);
+
+export const deletePost = createAsyncThunk(
+  "posts/deletePost",
+  async (initialPost: { id: string }) => {
+    const { id } = initialPost;
+    try {
+      const res = await axios.delete(`${POSTS_URL}/${id}`);
+      if (res.status === 200) return initialPost;
+      throw new Error(`${res.status}: ${res.statusText}`);
+    } catch (error) {
+      throw new Error((error as Error).message);
     }
   },
 );
@@ -86,7 +115,7 @@ const postsSlice = createSlice({
       //the prepare() is a preprocessor function that is used to structure the payload
       // before it reaches the actual reducer function. It is particularly useful
       // when you need to add additional data or transform the action payload
-      prepare(title: string, body: string, userId: string) {
+      prepare(title: string, body: string, userId: number) {
         return {
           payload: {
             id: nanoid(), // Generate a unique ID
@@ -172,6 +201,36 @@ const postsSlice = createSlice({
           };
           state.posts.push(action.payload); // Add the new post to the state
         },
+      )
+      .addCase(
+        updatePost.fulfilled,
+        (state, action: PayloadAction<PostType>) => {
+          console.log(action);
+
+          if (!action.payload?.id) {
+            console.log("udpate could not complete");
+            console.log(action.payload);
+            return;
+          }
+          const { id } = action.payload;
+          console.log(id);
+          action.payload.date = new Date().toISOString();
+          const posts = state.posts.filter((post: PostType) => post.id !== id);
+          state.posts = [...posts, action.payload];
+        },
+      )
+      .addCase(
+        deletePost.fulfilled,
+        (state, action: PayloadAction<{ id: string }>) => {
+          if (!action.payload?.id) {
+            console.log("Delete could not complete");
+            console.log(action.payload);
+            return;
+          }
+          const { id } = action.payload;
+          const posts = state.posts.filter((post) => post.id !== id);
+          state.posts = posts;
+        },
       );
   },
 });
@@ -183,6 +242,14 @@ export const getPostsStatus = (state: { posts: initialStateType }) =>
   state.posts.status;
 export const getPostsError = (state: { posts: initialStateType }) =>
   state.posts.error;
+
+export const selectPostById = (
+  state: { posts: initialStateType },
+  postId: string,
+) =>
+  state.posts.posts.find(
+    (post: PostType) => Number(post.id) === Number(postId),
+  );
 
 // Export the actions
 export const { postAdded, reactionAdded } = postsSlice.actions;

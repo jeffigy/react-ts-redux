@@ -1,20 +1,28 @@
 import { useAppDispatch, useAppSelector } from "app/hooks";
 import { useState } from "react";
-import { addNewPost } from "./postsSlice";
+import { useNavigate, useParams } from "react-router-dom";
+import { deletePost, selectPostById, updatePost } from "./postsSlice";
+import { useSelector } from "react-redux";
 import { UsersType, selectAllUsers } from "features/users/usersSlice";
-import { useNavigate } from "react-router-dom";
+import PostNotFound from "./PostNotFound";
 
-const AddPostForm = () => {
-  const dispatch = useAppDispatch();
-  const users = useAppSelector(selectAllUsers);
+const EditPost = () => {
+  const { postId } = useParams();
   const navigate = useNavigate();
-  const [title, setTitle] = useState<string>("");
-  const [body, setBody] = useState<string>("");
-  const [userId, setUserId] = useState<string>("");
-  const [addRequestStatus, setAddRequestStatus] = useState("idle");
+  const dispatch = useAppDispatch();
+  const post = useAppSelector((state) => selectPostById(state, postId!));
+  const users = useSelector(selectAllUsers);
+
+  if (!post) {
+    return <PostNotFound />;
+  }
+  const [title, setTitle] = useState(post.title);
+  const [body, setBody] = useState(post.body);
+  const [userId, setUserId] = useState<string>(post.userId.toString());
+  const [requestStatus, setRequestStatus] = useState("idle");
 
   const canSave =
-    [title, body, userId].every(Boolean) && addRequestStatus === "idle";
+    [title, body, userId].every(Boolean) && requestStatus === "idle";
 
   const onSubmit = async (
     e: React.FormEvent<HTMLFormElement | HTMLButtonElement>,
@@ -22,20 +30,41 @@ const AddPostForm = () => {
     e.preventDefault();
     if (canSave) {
       try {
-        setAddRequestStatus("pending");
-        await dispatch(
-          addNewPost({ title, body, userId: Number(userId) }),
+        setRequestStatus("pending");
+        dispatch(
+          updatePost({
+            id: post.id,
+            title,
+            body,
+            userId: Number(userId),
+            date: post.date,
+            reactions: post.reactions,
+          }),
         ).unwrap();
 
         setTitle("");
         setBody("");
         setUserId("");
-        navigate("/");
+        navigate(`/post/${postId}`);
       } catch (error) {
-        console.error("Failed to save the post", error);
-      } finally {
-        setAddRequestStatus("idle");
+        console.error("failed to save post", error);
       }
+    }
+  };
+
+  const onDelete = async () => {
+    try {
+      setRequestStatus("pending");
+      dispatch(deletePost({ id: post.id })).unwrap();
+
+      setTitle("");
+      setBody("");
+      setUserId("");
+      navigate("/");
+    } catch (error) {
+      console.log("faile to delete post", error);
+    } finally {
+      setRequestStatus("idle");
     }
   };
 
@@ -60,7 +89,9 @@ const AddPostForm = () => {
             </div>
             <select
               value={userId}
-              onChange={(e) => setUserId(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setUserId(e.target.value)
+              }
               className="select select-bordered bg-neutral"
             >
               <option value="" disabled>
@@ -89,7 +120,10 @@ const AddPostForm = () => {
               className="btn btn-primary btn-wide flex"
               disabled={!canSave}
             >
-              Add Post
+              Save Post
+            </button>
+            <button className="btn btn-error" onClick={onDelete}>
+              Delete
             </button>
           </div>
         </form>
@@ -98,4 +132,4 @@ const AddPostForm = () => {
   );
 };
 
-export default AddPostForm;
+export default EditPost;
